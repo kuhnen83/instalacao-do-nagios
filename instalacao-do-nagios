@@ -1,0 +1,93 @@
+## instalar o Nagios no Ubuntu 22.04 ##
+
+Etapa 1: Em primeiro lugar, atualize os pacotes do sistema Ubuntu por meio do seguinte comando.
+$ sudo apt update
+
+Passo 2: Existem algumas dependências que são necessárias para realizar a instalação do Nagios. O comando indicado abaixo ajudará nesse sentido.
+Nota:Ele instalaria o apache, php, openssl e dependências relevantes. Você pode instalá-los separadamente, mas é recomendável obtê-los com um único comando.
+$ sudo apt install wget unzip curl openssl build-essential libgd-dev libssl-dev libapache2-mod-php php-gd php apache2
+
+Etapa 3: Estamos realizando uma instalação manual. Para fazer isso, baixe o arquivo tar.gz por meio do seguinte comando.
+$ wget https://assets.nagios.com/downloads/nagioscore/releases/nagios-4.4.6.tar.gz
+
+Use o comando “ls” para garantir a disponibilidade do arquivo tar.gz recém-baixado.
+$ ls
+
+O arquivo está disponível como “nagios-4.4.6.tar.gz“. Executamos o seguinte comando para extraí-lo.
+$ sudo tar -zxvf nagios-4.4.6.tar.gz
+
+Agora mude o diretório de trabalho para nagios-4.4.6 para começar a construir os arquivos de instalação.
+$ cd nagios-4.4.6
+
+Passo 4: Certifique-se de que você está dentro do diretório onde o Nagios foi extraído. Execute o seguinte comando para executar o script ./configure para prosseguir com o processo de compilação.
+$ sudo ./configure
+
+Agora, use o utilitário make para processar os arquivos de código-fonte como fizemos aqui.
+$ sudo make all
+
+Para usar o Nagios, você deve criar um usuário e grupo do Nagios por meio do seguinte comando.
+$ sudo make install-groups-users
+
+groupadd -r nagios
+useradd -g nagios nagios
+
+Depois disso, adicione o usuário apache ao grupo nagios.
+$ sudo usermod -a -G nagios www-data
+groupadd -r nagios
+useradd -g nagios nagios
+
+Passo 5:É hora de instalar o Nagios com a ajuda do seguinte comando.
+$ sudo make install
+
+Enquanto isso, instale o arquivo de comando externo emitindo o seguinte comando.
+$ sudo make install-commandmode
+
+Depois disso, instale os seguintes arquivos de configuração emitindo o seguinte comando. Essas configurações são exigidas pelo Nagios para inicialização.
+$ sudo make install-config
+
+Etapa 6: Você precisa instalar os arquivos de configuração do apache.
+
+Primeiramente, instale a interface web do Nagios da seguinte forma:
+$ sudo make install-webconf
+
+Agora, faça uso do script a2enmod para habilitar os módulos rewrite e cgi do apache2.
+$ sudo a2enmod rewrite
+
+$ sudo a2enmod cgi
+
+Defina o UFW para permitir as próximas conexões do apache.
+$ sudo ufw allow apache
+
+Ative e recarregue o firewall da seguinte maneira.
+
+$ sudo ufw enable
+
+$ sudo ufw reload
+
+Depois de fazer as alterações, reinicie o serviço apache por meio do seguinte comando.
+$ sudo systemctl restart apache2
+
+Etapa 7: Crie um novo usuário Nagios como fizemos aqui. O comando abaixo mencionado cria um usuário chamado “linux-console” e a saída solicitará que você defina uma senha para o usuário “linux-console”.
+$ sudo htpasswd -c /usr/local/nagios/etc/htpasswd.users linux-console
+
+A saída mostra que a senha para o usuário “linux-console” também foi definida.
+
+Etapa 8: Recomenda-se instalar os plug-ins do Nagios, pois você pode não conseguir um bom uso da web. Temos que instalá-lo manualmente no site do Nagios.
+
+Em primeiro lugar, baixe o arquivo tar.gz com a ajuda do seguinte comando.
+$ sudo wget https://nagios-plugins.org/download/nagios-plugins-2.3.3.tar.gz
+
+Extraia o arquivo tar.gz.
+
+$ sudo tar -zxvf nagios-plugins-2.3.3.tar.gz
+
+Altere o diretório de trabalho para onde os plug-ins são extraídos.
+$ cd nagios-plugins-2.3.3
+
+Execute o seguinte comando para executar o script de configuração para o usuário e grupo do Nagios.
+$ sudo ./configure --with-nagios-user=nagios --with-nagios-group=nagios
+
+Agora você pode usar o utilitário make para instalar plugins nagios fornecendo o seguinte comando.
+$ sudo make install
+
+######### Por fim, o Nagios instalado e configurado no Ubuntu 22.04. #########
